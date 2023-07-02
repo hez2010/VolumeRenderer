@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "VolumeRenderer": {
+      "commandName": "Project",
+      "workingDirectory": "$(ProjectDir)"
+    }
+  }
+}
