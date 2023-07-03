@@ -44,8 +44,8 @@ float4 main(PS_IN input) : SV_TARGET
         position += delta;
     }
     
-    color.xyz = color.a * color.rgb + (1 - color.a) * float3(1.0, 1.0, 1.0);
-    color.w = 1.0;
+    color.rgb = color.a * color.rgb + (1 - color.a) * float3(1.0, 1.0, 1.0);
+    color.a = 1.0;
     
     return color;
 }
