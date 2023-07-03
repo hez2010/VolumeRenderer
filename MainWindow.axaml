@@ -2,36 +2,58 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		xmlns:local="using:VolumeRenderer"
+        xmlns:local="using:VolumeRenderer"
+        xmlns:sys="using:System"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
         x:Class="VolumeRenderer.MainWindow"
-		Title="{Binding #volrdn.Fps, StringFormat=Volume Renderer - {0} FPS, Mode=OneWay}"
-		PointerWheelChanged="OnPointerWheelChanged"
-		KeyDown="OnKeyDown">
-	<Grid Margin="16">
-		<Grid RowDefinitions="Auto,*">
-			<TextBox Grid.Row="0" AcceptsReturn="True" IsReadOnly="True" Margin="0,0,0,16" Text="{Binding #volrdn.Info}"/>
-			<Border CornerRadius="4" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black" Width="604" Height="604">
-				<local:VolumeRendererControl x:Name="volrdn" HorizontalAlignment="Center" VerticalAlignment="Center" Width="600" Height="600" />
-			</Border>
-		</Grid>
-		<Grid RowDefinitions="Auto,Auto,Auto,Auto" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-			<TextBlock Grid.Row="0" Text="Press W, A, S, or D to move the camera." Margin="8,0" />
-			<Grid ColumnDefinitions="50,Auto,Auto" Grid.Row="1">
-				<TextBlock Grid.Column="0" Text="Yaw" VerticalAlignment="Center" Margin="8,0" />
-				<Slider Grid.Column="1" Minimum="-180" Maximum="180" Value="{Binding #volrdn.Yaw, Mode=TwoWay}" Width="200" />
-				<TextBlock Grid.Column="2" Text="{Binding #volrdn.Yaw, StringFormat={}{0:F2}, Mode=OneWay}" VerticalAlignment="Center" Margin="8,0" Width="50" />
-			</Grid>
-			<Grid ColumnDefinitions="50,Auto,Auto" Grid.Row="2">
-				<TextBlock Grid.Column="0" Text="Pitch" VerticalAlignment="Center" Margin="8,0" />
-				<Slider Grid.Column="1" Minimum="-180" Maximum="180" Value="{Binding #volrdn.Pitch, Mode=TwoWay}" Width="200" />
-				<TextBlock Grid.Column="2" Text="{Binding #volrdn.Pitch, StringFormat={}{0:F2}, Mode=OneWay}" VerticalAlignment="Center" Margin="8,0" Width="50" />
-			</Grid>
-			<Grid ColumnDefinitions="50,Auto,Auto" Grid.Row="3">
-				<TextBlock Grid.Column="0" Text="Roll" VerticalAlignment="Center" Margin="8,0" />
-				<Slider Grid.Column="1" SmallChange="0.01" Minimum="-180" Maximum="180" Value="{Binding #volrdn.Roll, Mode=TwoWay}" Width="200" />
-				<TextBlock Grid.Column="2" Text="{Binding #volrdn.Roll, StringFormat={}{0:F2}, Mode=OneWay}" VerticalAlignment="Center" Margin="8,0" Width="50" />
-			</Grid>
-		</Grid>
-	</Grid>
+        Title="{Binding #volrdn.Fps, StringFormat=Volume Renderer - {0} FPS, Mode=OneWay}"
+        PointerWheelChanged="OnPointerWheelChanged"
+        KeyDown="OnKeyDown">
+    <Grid Margin="16">
+        <Grid RowDefinitions="Auto,*">
+            <TextBox Grid.Row="0" AcceptsReturn="True" IsReadOnly="True" Margin="0,0,0,16" Text="{Binding #volrdn.Info}"/>
+            <Border CornerRadius="4" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black" Width="604" Height="604">
+                <local:VolumeRendererControl x:Name="volrdn" HorizontalAlignment="Center" VerticalAlignment="Center" Width="600" Height="600" />
+            </Border>
+        </Grid>
+        <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <TextBlock Grid.Row="0" Text="Press W, A, S, or D to move the camera." Margin="8,0" />
+            <Grid ColumnDefinitions="50,Auto,Auto" Grid.Row="1">
+                <TextBlock Grid.Column="0" Text="Yaw" VerticalAlignment="Center" Margin="8,0" />
+                <Slider Grid.Column="1" Minimum="-180" Maximum="180" Value="{Binding #volrdn.Yaw, Mode=TwoWay}" Width="200" />
+                <TextBlock Grid.Column="2" Text="{Binding #volrdn.Yaw, StringFormat={}{0:F2}, Mode=OneWay}" VerticalAlignment="Center" Margin="8,0" Width="50" />
+            </Grid>
+            <Grid ColumnDefinitions="50,Auto,Auto" Grid.Row="2">
+                <TextBlock Grid.Column="0" Text="Pitch" VerticalAlignment="Center" Margin="8,0" />
+                <Slider Grid.Column="1" Minimum="-180" Maximum="180" Value="{Binding #volrdn.Pitch, Mode=TwoWay}" Width="200" />
+                <TextBlock Grid.Column="2" Text="{Binding #volrdn.Pitch, StringFormat={}{0:F2}, Mode=OneWay}" VerticalAlignment="Center" Margin="8,0" Width="50" />
+            </Grid>
+            <Grid ColumnDefinitions="50,Auto,Auto" Grid.Row="3">
+                <TextBlock Grid.Column="0" Text="Roll" VerticalAlignment="Center" Margin="8,0" />
+                <Slider Grid.Column="1" SmallChange="0.01" Minimum="-180" Maximum="180" Value="{Binding #volrdn.Roll, Mode=TwoWay}" Width="200" />
+                <TextBlock Grid.Column="2" Text="{Binding #volrdn.Roll, StringFormat={}{0:F2}, Mode=OneWay}" VerticalAlignment="Center" Margin="8,0" Width="50" />
+            </Grid>
+            <Grid ColumnDefinitions="Auto,Auto" Grid.Row="4">
+                <TextBlock Grid.Column="0" Text="Step Size:" Margin="8,0" VerticalAlignment="Center" />
+                <TextBox Grid.Column="1" Text="{Binding #volrdn.StepSize, Mode=TwoWay}">
+                    <TextBox.Styles>
+                        <Style Selector="DataValidationErrors">
+                            <Setter Property="Template">
+                                <ControlTemplate>
+                                    <ContentPresenter Name="PART_ContentPresenter"
+                                                      Background="{TemplateBinding Background}"
+                                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                                      BorderThickness="{TemplateBinding BorderThickness}"
+                                                      CornerRadius="{TemplateBinding CornerRadius}"
+                                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                      Content="{TemplateBinding Content}"
+                                                      Padding="{TemplateBinding Padding}" />
+                                </ControlTemplate>
+                            </Setter>
+                        </Style>
+                    </TextBox.Styles>
+                </TextBox>
+            </Grid>
+        </Grid>
+    </Grid>
 </Window>

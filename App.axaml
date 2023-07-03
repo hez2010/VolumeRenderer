@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="VolumeRenderer.App"
              RequestedThemeVariant="Default"
-			 xmlns:sty="using:FluentAvalonia.Styling">
+             xmlns:sty="using:FluentAvalonia.Styling">
     <Application.Styles>
-		<sty:FluentAvaloniaTheme PreferSystemTheme="True" />
+        <sty:FluentAvaloniaTheme PreferSystemTheme="True" />
     </Application.Styles>
 </Application>

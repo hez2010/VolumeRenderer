@@ -109,6 +109,20 @@ public sealed class VolumeRendererControl : Control
         private set => SetAndRaise(FpsProperty, ref _fps, value);
     }
 
+    public static readonly DirectProperty<VolumeRendererControl, float> StepSizeProperty =
+        AvaloniaProperty.RegisterDirect<VolumeRendererControl, float>(nameof(StepSize), o => o.StepSize, (o, v) => o.StepSize = v);
+
+    private float _stepsize = 0.01f;
+    public float StepSize
+    {
+        get => _stepsize;
+        set
+        {
+            if (value <= 0.00001f) throw new ArgumentOutOfRangeException(nameof(StepSize), "Step size is too small.");
+            SetAndRaise(StepSizeProperty, ref _stepsize, value);
+        }
+    }
+
     protected override async void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
@@ -333,7 +347,7 @@ public sealed class VolumeRendererControl : Control
         _rayCastingShader.Use(_context);
 
         _rayCastingShader.SetVertexConstantBuffer(_context, new(mvp));
-        _rayCastingShader.SetPixelConstantBuffer(_context, new(0.01f, new(pixelSize.Width, pixelSize.Height)));
+        _rayCastingShader.SetPixelConstantBuffer(_context, new(StepSize, new(pixelSize.Width, pixelSize.Height)));
 
         _context.PixelShader.SetSampler(0, _rayGenerator.SamplerState);
         _context.PixelShader.SetSampler(1, _rawLoader.SamplerState);
