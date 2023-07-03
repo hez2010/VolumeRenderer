@@ -5,6 +5,7 @@ using SharpDX.Direct3D;
 using Avalonia.VisualTree;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using Avalonia.LogicalTree;
+using System.Threading;
 
 namespace VolumeRenderer;
 
@@ -27,6 +28,8 @@ public sealed class VolumeRendererControl : Control
     private RawLoader? _rawLoader;
     private RayGenerator? _rayGenerator;
     private Buffer? _vertexBuffer, _indexBuffer;
+
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     private long _lastTime;
     private float _deltaTime;
@@ -270,7 +273,15 @@ public sealed class VolumeRendererControl : Control
             return;
 
         _visual!.Size = new(Bounds.Width, Bounds.Height);
-        RenderFrame(PixelSize.FromSize(Bounds.Size, root.RenderScaling));
+        try
+        {
+            _semaphore.Wait();
+            RenderFrame(PixelSize.FromSize(Bounds.Size, root.RenderScaling));
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
         QueueNextFrame();
     }
 
@@ -394,6 +405,14 @@ public sealed class VolumeRendererControl : Control
                 break;
 
         }
+    }
+
+    public void ChangeTransferFunction(string path)
+    {
+        _semaphore.Wait();
+        _transferFunctionLoader?.Dispose();
+        _transferFunctionLoader = new TransferFunctionLoader(_device, path);
+        _semaphore.Release();
     }
 
     public void ChangePointerWheel(float yOffset)
