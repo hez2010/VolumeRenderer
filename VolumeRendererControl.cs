@@ -234,7 +234,7 @@ public sealed class VolumeRendererControl : Control
             });
 
             var pixelSize = PixelSize.FromSize(Bounds.Size, root.RenderScaling);
-            _camera = new Camera(new(0, 0, -2), 0, 0, 0, MathUtil.PiOverFour, (float)pixelSize.Width / pixelSize.Height, 0.1f, 800.0f);
+            _camera = new Camera(new(0.5f, 0.5f, -2), 0, 0, 0, MathUtil.PiOverFour, (float)pixelSize.Width / pixelSize.Height, 0.1f, 800.0f);
             _cubeShader = new Shader<MvpConstantBuffer>(_device, "shaders/cube.v.hlsl", "shaders/cube.p.hlsl");
             _rayCastingShader = new Shader<MvpConstantBuffer, RayCastingConstantBuffer>(_device, "shaders/ray_casting.v.hlsl", "shaders/ray_casting.p.hlsl");
             _transferFunctionLoader = new TransferFunctionLoader(_device, "data/transferfunction/transfer_function.dat");

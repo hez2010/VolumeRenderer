@@ -33,7 +33,7 @@ class Camera
 
     public void UpdateViewMatrix()
     {
-        Quaternion rotation = Quaternion.RotationYawPitchRoll(Yaw, Pitch, Roll);
+        Quaternion rotation = Quaternion.RotationYawPitchRoll(Yaw, Pitch, Roll + MathUtil.Pi);
         Vector3 forward = Vector3.Transform(Vector3.UnitZ, rotation);
         Vector3 up = Vector3.Transform(Vector3.UnitY, rotation);
         _viewMatrix = Matrix4x4.LookAtLH(Position, Position + forward, up);
@@ -65,7 +65,7 @@ class Camera
     public void Move(CameraMovement direction, float deltaTime)
     {
         float velocity = Speed * deltaTime;
-        Quaternion rotation = Quaternion.RotationYawPitchRoll(Yaw, Pitch, Roll);
+        Quaternion rotation = Quaternion.RotationYawPitchRoll(Yaw, Pitch, Roll + MathUtil.Pi);
         Vector3 forward = Vector3.Transform(Vector3.UnitZ, rotation);
         Vector3 right = Vector3.Transform(Vector3.UnitX, rotation);
 

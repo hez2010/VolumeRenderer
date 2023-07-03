@@ -11,9 +11,9 @@ sealed class TransferFunctionLoader : IDisposable
 
     public TransferFunctionLoader(D3DDevice device, string path)
     {
-        Span<byte> transferFunctionData = new byte[256 * 4];
+        using var dataStream = new DataStream(256 * 4, true, true);
         using var file = File.OpenRead(path);
-        file.ReadExactly(transferFunctionData);
+        file.CopyTo(dataStream);
 
         var description = new Texture1DDescription
         {
@@ -27,16 +27,7 @@ sealed class TransferFunctionLoader : IDisposable
             OptionFlags = ResourceOptionFlags.None,
         };
 
-        DataStream data;
-        unsafe
-        {
-            fixed (byte* ptr = transferFunctionData)
-            {
-                data = new DataStream((nint)ptr, 256 * 4, true, false);
-            }
-        }
-
-        using var texture = new Texture1D(device, description, data);
+        using var texture = new Texture1D(device, description, dataStream);
         FunctionTextureView = new ShaderResourceView(device, texture);
 
         SamplerState = new SamplerState(device, new SamplerStateDescription
