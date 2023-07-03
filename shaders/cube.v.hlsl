@@ -6,7 +6,6 @@ cbuffer VS_CONSTANT_BUFFER : register(b0)
 struct VS_IN
 {
     float3 pos : POSITION;
-    float3 col : COLOR;
 };
 
 struct PS_IN
@@ -19,7 +18,7 @@ PS_IN main(VS_IN input)
 {
     PS_IN output;
     output.pos = mul(mvp, float4(input.pos, 1.0f));
-    output.col = input.col;
+    output.col = input.pos;
     
     return output;
 }

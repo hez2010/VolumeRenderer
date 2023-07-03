@@ -9,6 +9,8 @@ sealed class RayGenerator : IDisposable
     public ShaderResourceView BackFaceTextureView { get; }
     public RenderTargetView FrontFaceRenderTargetView { get; }
     public RenderTargetView BackFaceRenderTargetView { get; }
+    public DepthStencilState FrontFaceDepthStencilState { get; }
+    public DepthStencilState BackFaceDepthStencilState { get; }
     public DepthStencilView DepthStencilView { get; }
     public SamplerState SamplerState { get; }
 
@@ -55,12 +57,41 @@ sealed class RayGenerator : IDisposable
 
         SamplerState = new SamplerState(device, new SamplerStateDescription
         {
-            AddressU = TextureAddressMode.Wrap,
-            AddressV = TextureAddressMode.Wrap,
+            AddressU = TextureAddressMode.Border,
+            AddressV = TextureAddressMode.Border,
             AddressW = TextureAddressMode.Border,
-            Filter = Filter.MinMagMipPoint,
+            Filter = Filter.MinMagMipLinear,
             BorderColor = new RawColor4(0, 0, 0, 0)
         });
+
+        var depthStencilStateDesc = new DepthStencilStateDescription
+        {
+            IsDepthEnabled = true,
+            DepthWriteMask = DepthWriteMask.All,
+            DepthComparison = Comparison.Less,
+            IsStencilEnabled = true,
+            StencilReadMask = 0xFF,
+            StencilWriteMask = 0xFF,
+            FrontFace = new DepthStencilOperationDescription
+            {
+                Comparison = Comparison.Always,
+                FailOperation = StencilOperation.Keep,
+                DepthFailOperation = StencilOperation.Increment,
+                PassOperation = StencilOperation.Keep
+            },
+            BackFace = new DepthStencilOperationDescription
+            {
+                Comparison = Comparison.Always,
+                FailOperation = StencilOperation.Keep,
+                DepthFailOperation = StencilOperation.Decrement,
+                PassOperation = StencilOperation.Keep
+            }
+        };
+        FrontFaceDepthStencilState =  new DepthStencilState(device, depthStencilStateDesc);
+        depthStencilStateDesc.FrontFace.DepthFailOperation = StencilOperation.Decrement;
+        depthStencilStateDesc.BackFace.DepthFailOperation = StencilOperation.Increment;
+        BackFaceDepthStencilState = new DepthStencilState(device, depthStencilStateDesc);
+
     }
 
     public void Dispose()
@@ -74,6 +105,8 @@ sealed class RayGenerator : IDisposable
             FrontFaceTextureView?.Dispose();
             BackFaceTextureView?.Dispose();
             DepthStencilView?.Dispose();
+            FrontFaceDepthStencilState?.Dispose();
+            BackFaceDepthStencilState?.Dispose();
             SamplerState?.Dispose();
         }
     }

@@ -1,4 +1,4 @@
-﻿using SharpDX.Direct3D;
+﻿using SharpDX.Mathematics.Interop;
 using System.IO;
 
 namespace VolumeRenderer;
@@ -35,10 +35,11 @@ sealed class RawLoader : IDisposable
 
         SamplerState = new SamplerState(device, new SamplerStateDescription
         {
-            AddressU = TextureAddressMode.Wrap,
-            AddressV = TextureAddressMode.Wrap,
-            AddressW = TextureAddressMode.Wrap,
-            Filter = Filter.MinMagMipLinear
+            AddressU = TextureAddressMode.Border,
+            AddressV = TextureAddressMode.Border,
+            AddressW = TextureAddressMode.Border,
+            Filter = Filter.MinMagMipLinear,
+            BorderColor = new RawColor4(0, 0, 0, 0)
         });
     }
 

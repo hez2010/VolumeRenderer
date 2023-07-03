@@ -283,16 +283,13 @@ public sealed class VolumeRendererControl : Control
             throw new InvalidOperationException("Volume renderer is not initialized.");
         }
 
+        using var draw = _swapchain.BeginDraw(pixelSize, out var renderTargetView);
+
         var mvp = _camera.GetMVPMatrix(Matrix4x4.Identity);
         var viewport = new ViewportF(0, 0, pixelSize.Width, pixelSize.Height);
         _context.Rasterizer.SetViewport(viewport);
 
-        _context.OutputMerger.DepthStencilState = new DepthStencilState(_device, new DepthStencilStateDescription
-        {
-            IsDepthEnabled = true,
-            DepthWriteMask = DepthWriteMask.All,
-            DepthComparison = Comparison.Less
-        });
+        _context.OutputMerger.DepthStencilState = _rayGenerator.FrontFaceDepthStencilState;
 
         _context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
         _context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(_vertexBuffer, Utilities.SizeOf<Vector3>(), 0));
@@ -300,7 +297,7 @@ public sealed class VolumeRendererControl : Control
         _cubeShader.Use(_context);
         _cubeShader.SetVertexConstantBuffer(_context, new(mvp));
 
-        _context.ClearRenderTargetView(_rayGenerator.FrontFaceRenderTargetView, new Color4(1.0f, 1.0f, 1.0f, 0.0f));
+        _context.ClearRenderTargetView(_rayGenerator.FrontFaceRenderTargetView, new Color4(0.0f, 0.0f, 0.0f, 1.0f));
         _context.ClearDepthStencilView(_rayGenerator.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
         _context.OutputMerger.SetTargets(_rayGenerator.DepthStencilView, _rayGenerator.FrontFaceRenderTargetView);
         _context.Rasterizer.State = new RasterizerState(_device, new RasterizerStateDescription
@@ -311,7 +308,9 @@ public sealed class VolumeRendererControl : Control
 
         _context.DrawIndexed(36, 0, 0);
 
-        _context.ClearRenderTargetView(_rayGenerator.BackFaceRenderTargetView, new Color4(1.0f, 1.0f, 1.0f, 0.0f));
+        _context.OutputMerger.DepthStencilState = _rayGenerator.BackFaceDepthStencilState;
+
+        _context.ClearRenderTargetView(_rayGenerator.BackFaceRenderTargetView, new Color4(0.0f, 0.0f, 0.0f, 1.0f));
         _context.ClearDepthStencilView(_rayGenerator.DepthStencilView, DepthStencilClearFlags.Depth, 1.0f, 0);
         _context.OutputMerger.SetTargets(_rayGenerator.DepthStencilView, _rayGenerator.BackFaceRenderTargetView);
         _context.Rasterizer.State = new RasterizerState(_device, new RasterizerStateDescription
@@ -321,8 +320,6 @@ public sealed class VolumeRendererControl : Control
         });
 
         _context.DrawIndexed(36, 0, 0);
-
-        using var draw = _swapchain.BeginDraw(pixelSize, out var renderTargetView);
 
         _context.Rasterizer.State = new RasterizerState(_device, new RasterizerStateDescription
         {

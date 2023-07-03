@@ -25,7 +25,7 @@ float4 main(PS_IN input) : SV_TARGET
 
     float3 entryPoint = Front.Sample(faceSampler, texC).rgb;
     float3 exitPoint = Back.Sample(faceSampler, texC).rgb;
-    float3 ray = exitPoint - entryPoint;
+    float3 ray = normalize(exitPoint - entryPoint);
     float ray_length = length(ray);
     float3 delta = step * (ray / ray_length);
     float3 position = entryPoint.xyz;
