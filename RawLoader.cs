@@ -23,7 +23,7 @@ sealed class RawLoader : IDisposable
             Height = y,
             Depth = z,
             MipLevels = 1,
-            Format = dataType == RawDataType.U8 ? Format.R8_UNorm : Format.R16_UNorm,
+            Format = Format.R8_UNorm,
             Usage = ResourceUsage.Immutable,
             BindFlags = BindFlags.ShaderResource,
             CpuAccessFlags = CpuAccessFlags.None,
