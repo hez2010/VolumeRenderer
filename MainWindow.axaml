@@ -11,9 +11,9 @@
         KeyDown="OnKeyDown">
     <Grid Margin="16">
         <Grid RowDefinitions="Auto,*">
-            <TextBox Grid.Row="0" AcceptsReturn="True" IsReadOnly="True" Margin="0,0,0,16" Text="{Binding #volrdn.Info}"/>
-            <Border CornerRadius="4" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black" Width="604" Height="604">
-                <local:VolumeRendererControl x:Name="volrdn" HorizontalAlignment="Center" VerticalAlignment="Center" Width="600" Height="600" />
+            <TextBlock Grid.Row="0" Margin="0,0,0,16" Text="{Binding #volrdn.Info}"/>
+            <Border CornerRadius="4" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Top" BorderThickness="1" BorderBrush="Black" Width="404" Height="404">
+                <local:VolumeRendererControl x:Name="volrdn" HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Height="400" />
             </Border>
         </Grid>
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom">
@@ -54,7 +54,10 @@
                     </TextBox.Styles>
                 </TextBox>
             </Grid>
-			<Button Content="Change Transfer function" Margin="8" Click="TfChange_OnClicked" />
+			<Grid ColumnDefinitions="Auto,Auto">
+				<Button Grid.Column="0" Content="Change Transfer function" Margin="8,8,4,8" Click="TfChange_OnClicked" />
+				<Button Grid.Column="1" Content="Editor" Margin="4,8,4,8" Click="TfEdit_OnClicked" />
+			</Grid>
         </StackPanel>
     </Grid>
 </Window>

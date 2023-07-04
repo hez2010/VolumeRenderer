@@ -37,4 +37,9 @@ public partial class MainWindow : Window
             volrdn.ChangeTransferFunction(path);
         }
     }
+
+    public void TfEdit_OnClicked(object? sender, RoutedEventArgs e)
+    {
+        new TfEditorWindow().ShowDialog(this);
+    }
 }

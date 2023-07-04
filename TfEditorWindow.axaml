@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="using:VolumeRenderer"
+        xmlns:sys="using:System"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+        x:Class="VolumeRenderer.TfEditorWindow"
+        x:DataType="local:TfEditorViewModel"
+        Title="Volume Renderer - Transfer Function Editor">
+    <Grid RowDefinitions="*, Auto" Margin="8">
+        <DataGrid Grid.Row="0" HeadersVisibility="All" CanUserResizeColumns="True" CanUserSortColumns="False" CanUserReorderColumns="True" ItemsSource="{Binding Data}">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Intensity" Binding="{Binding Intensity}" />
+                <DataGridTextColumn Header="R" Binding="{Binding R, Mode=TwoWay}" />
+                <DataGridTextColumn Header="G" Binding="{Binding G, Mode=TwoWay}" />
+                <DataGridTextColumn Header="B" Binding="{Binding B, Mode=TwoWay}" />
+                <DataGridTextColumn Header="A" Binding="{Binding A, Mode=TwoWay}" />
+                <DataGridTemplateColumn Header="Color">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="{Binding Color}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8">
+            <Button Content="Load" Margin="0,0,8,0" Click="Load_OnClicked" />
+            <Button Content="Save" Click="Save_OnClicked" />
+        </StackPanel>
+    </Grid>
+</Window>
