@@ -255,7 +255,7 @@ public sealed class VolumeRendererControl : Control
             _cubeShader = new Shader<MvpConstantBuffer>(_device, "shaders/cube.v.hlsl", "shaders/cube.p.hlsl");
             _rayCastingShader = new Shader<MvpConstantBuffer, RayCastingConstantBuffer>(_device, "shaders/ray_casting.v.hlsl", "shaders/ray_casting.p.hlsl");
             _transferFunctionLoader = new TransferFunctionLoader(_device, "data/transferfunction/transfer_function.dat");
-            _rawLoader = new RawLoader(_device, "data/raw/bonsai_256x256x256_uint8.raw", 256, 256, 256, RawDataType.U8);
+            _rawLoader = new RawLoader(_device, "data/raw/Bonsai.1.256x256x256.raw", 256, 256, 256, RawDataType.U8);
             _rayGenerator = new RayGenerator(_device, pixelSize.Width, pixelSize.Height);
         }
         catch (Exception ex)
@@ -409,10 +409,13 @@ public sealed class VolumeRendererControl : Control
 
     public void ChangeTransferFunction(string path)
     {
-        _semaphore.Wait();
-        _transferFunctionLoader?.Dispose();
-        _transferFunctionLoader = new TransferFunctionLoader(_device, path);
-        _semaphore.Release();
+        if (_device is not null)
+        {
+            _semaphore.Wait();
+            _transferFunctionLoader?.Dispose();
+            _transferFunctionLoader = new TransferFunctionLoader(_device, path);
+            _semaphore.Release();
+        }
     }
 
     public void ChangePointerWheel(float yOffset)
