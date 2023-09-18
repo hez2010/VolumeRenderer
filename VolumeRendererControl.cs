@@ -32,8 +32,10 @@ public sealed class VolumeRendererControl : Control
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     private long _lastTime;
+    private long _lastCountTime;
     private float _deltaTime;
     private int _framesPerSecond;
+    private Matrix4x4 _model = Matrix4x4.Identity;
 
     public static readonly DirectProperty<VolumeRendererControl, string?> InfoProperty =
         AvaloniaProperty.RegisterDirect<VolumeRendererControl, string?>(nameof(Info), o => o.Info, (o, v) => o.Info = v);
@@ -124,6 +126,17 @@ public sealed class VolumeRendererControl : Control
             if (value <= 0.00001f) throw new ArgumentOutOfRangeException(nameof(StepSize), "Step size is too small.");
             SetAndRaise(StepSizeProperty, ref _stepsize, value);
         }
+    }
+
+    private bool _autoSpin;
+
+    public static readonly DirectProperty<VolumeRendererControl, bool> AutoSpinProperty =
+        AvaloniaProperty.RegisterDirect<VolumeRendererControl, bool>(nameof(AutoSpin), o => o.AutoSpin, (o, v) => o.AutoSpin = v);
+
+    public bool AutoSpin
+    {
+        get => _autoSpin;
+        private set => SetAndRaise(AutoSpinProperty, ref _autoSpin, value);
     }
 
     protected override async void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -310,7 +323,14 @@ public sealed class VolumeRendererControl : Control
 
         using var draw = _swapchain.BeginDraw(pixelSize, out var renderTargetView);
 
-        var mvp = _camera.GetMVPMatrix(Matrix4x4.Identity);
+        if (_autoSpin)
+        {
+            var angle = _camera.Speed * 0.1f;
+            var rotation = Matrix4x4.Translation(-0.5f, 0, -0.5f) * Matrix4x4.RotationYawPitchRoll(angle, 0, 0) * Matrix4x4.Translation(0.5f, 0, 0.5f);
+            _model *= rotation;
+        }
+
+        var mvp = _camera.GetMVPMatrix(_model);
         var viewport = new ViewportF(0, 0, pixelSize.Width, pixelSize.Height);
         _context.Rasterizer.SetViewport(viewport);
 
@@ -379,11 +399,12 @@ public sealed class VolumeRendererControl : Control
         var currentTime = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
         ++_framesPerSecond;
         _deltaTime = (currentTime - _lastTime) / 1000.0f;
-        if (currentTime - _lastTime > 500)
+        _lastTime = currentTime;
+        if (currentTime - _lastCountTime > 500)
         {
-            _lastTime = currentTime;
-            Fps = (int)(_framesPerSecond / _deltaTime);
+            Fps = (int)(_framesPerSecond / ((currentTime - _lastCountTime) / 1000.0f));
             _framesPerSecond = 0;
+            _lastCountTime = currentTime;
         }
     }
 

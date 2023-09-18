@@ -54,9 +54,10 @@
                     </TextBox.Styles>
                 </TextBox>
             </Grid>
-			<Grid ColumnDefinitions="Auto,Auto">
-				<Button Grid.Column="0" Content="Change Transfer function" Margin="8,8,4,8" Click="TfChange_OnClicked" />
-				<Button Grid.Column="1" Content="Editor" Margin="4,8,4,8" Click="TfEdit_OnClicked" />
+			<Grid ColumnDefinitions="Auto,Auto,Auto">
+                <CheckBox Grid.Column="0" Content="Spin" Margin="8,8,4,8" IsChecked="{Binding #volrdn.AutoSpin, Mode=TwoWay}" />
+				<Button Grid.Column="1" Content="Change Transfer function" Margin="4,8,4,8" Click="TfChange_OnClicked" />
+				<Button Grid.Column="2" Content="Editor" Margin="4,8,4,8" Click="TfEdit_OnClicked" />
 			</Grid>
         </StackPanel>
     </Grid>
