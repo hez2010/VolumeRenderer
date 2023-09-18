@@ -8,6 +8,7 @@ sealed class TransferFunctionLoader : IDisposable
     private bool _disposed;
     public ShaderResourceView FunctionTextureView { get; }
     public SamplerState SamplerState { get; }
+    public string FileName { get; }
 
     public TransferFunctionLoader(D3DDevice device, string path)
     {
@@ -38,6 +39,8 @@ sealed class TransferFunctionLoader : IDisposable
             Filter = Filter.MinMagMipPoint,
             BorderColor = new RawColor4(0, 0, 0, 0)
         });
+
+        FileName = path;
     }
 
     public void Dispose()

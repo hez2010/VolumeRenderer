@@ -4,14 +4,14 @@ A simple volume renderer implemented using DirectX 11 + Avalonia
 
 ## Build
 
-Prerequisites: [.NET 7 SDK](https://dotnet.microsoft.com/download)
+Prerequisites: [.NET 8 SDK](https://dotnet.microsoft.com/download)
 
 ```powershell
-dotnet build
+dotnet build -c Release # or Debug
 ```
 
 ## Run
 
 ```powershell
-dotnet run
+dotnet run -c Release # or Debug
 ```

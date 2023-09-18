@@ -4,7 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="using:VolumeRenderer"
         xmlns:sys="using:System"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="800"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="400"
+        Width="600" Height="400"
         x:Class="VolumeRenderer.TfEditorWindow"
         x:DataType="local:TfEditorViewModel"
         Title="Volume Renderer - Transfer Function Editor">
@@ -26,8 +27,8 @@
             </DataGrid.Columns>
         </DataGrid>
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,8">
-            <Button Content="Load" Margin="0,0,8,0" Click="Load_OnClicked" />
-            <Button Content="Save" Click="Save_OnClicked" />
+            <Button Content="Apply" Click="Apply_OnClicked" />
+            <Button Content="Edit as CSV" Margin="8,0,0,0" Click="Csv_OnClicked" />
         </StackPanel>
     </Grid>
 </Window>

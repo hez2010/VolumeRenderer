@@ -428,16 +428,27 @@ public sealed class VolumeRendererControl : Control
         }
     }
 
-    public void ChangeTransferFunction(string path)
+    public void UpdateTransferFunction(string? path = null)
     {
         if (_device is not null)
         {
             _semaphore.Wait();
-            _transferFunctionLoader?.Dispose();
-            _transferFunctionLoader = new TransferFunctionLoader(_device, path);
+            if (_transferFunctionLoader is not null)
+            {
+                _transferFunctionLoader.Dispose();
+                _transferFunctionLoader = path is null
+                    ? new TransferFunctionLoader(_device, _transferFunctionLoader.FileName)
+                    : new TransferFunctionLoader(_device, path);
+            }
+            else if (path is not null)
+            {
+                _transferFunctionLoader = new TransferFunctionLoader(_device, path);
+            }
             _semaphore.Release();
         }
     }
+
+    public string? GetTransferFunction() => _transferFunctionLoader?.FileName;
 
     public void ChangePointerWheel(float yOffset)
     {

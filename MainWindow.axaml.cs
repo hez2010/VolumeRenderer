@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using FluentAvalonia.UI.Controls;
 
 namespace VolumeRenderer;
 
@@ -34,12 +35,28 @@ public partial class MainWindow : Window
 
         if (result is [IStorageFile file] && file.TryGetLocalPath() is string path)
         {
-            volrdn.ChangeTransferFunction(path);
+            volrdn.UpdateTransferFunction(path);
         }
     }
 
-    public void TfEdit_OnClicked(object? sender, RoutedEventArgs e)
+    public async void TfEdit_OnClicked(object? sender, RoutedEventArgs e)
     {
-        new TfEditorWindow().ShowDialog(this);
+        if (volrdn.GetTransferFunction() is not string tfFile)
+        {
+            await new ContentDialog
+            {
+                Title = "Error",
+                Content = "No transfer function has been set!",
+                PrimaryButtonText = "OK"
+            }.ShowAsync();
+            return;
+        }
+        else
+        {
+            var tfEditor = new TfEditorWindow();
+            await tfEditor.SetTransferFunction(tfFile);
+            tfEditor.DataApplied += (_, _) => volrdn.UpdateTransferFunction();
+            await tfEditor.ShowDialog(this);
+        }
     }
 }
