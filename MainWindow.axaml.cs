@@ -3,13 +3,13 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using FluentAvalonia.UI.Controls;
-using System.Collections.Generic;
 
 namespace VolumeRenderer;
 
 public partial class MainWindow : Window
 {
     private bool _pointerInHistogram;
+    private TfEditorWindow? _tfEditor;
     private double[] _histogramX = [];
     private double[] _histogramY = [];
 
@@ -100,6 +100,12 @@ public partial class MainWindow : Window
 
     public async void TfEdit_OnClicked(object? sender, RoutedEventArgs e)
     {
+        if (_tfEditor is TfEditorWindow window)
+        {
+            window.Activate();
+            return;
+        }
+
         if (volrdn.GetTransferFunction() is not string tfFile)
         {
             await new ContentDialog
@@ -112,10 +118,11 @@ public partial class MainWindow : Window
         }
         else
         {
-            var tfEditor = new TfEditorWindow();
-            await tfEditor.SetTransferFunction(tfFile);
-            tfEditor.DataApplied += (_, _) => volrdn.UpdateTransferFunction();
-            await tfEditor.ShowDialog(this);
+            _tfEditor = new TfEditorWindow();
+            await _tfEditor.SetTransferFunction(tfFile);
+            _tfEditor.DataApplied += (_, _) => volrdn.UpdateTransferFunction();
+            _tfEditor.Closing += (_, _) => _tfEditor = null;
+            _tfEditor.Show();
         }
     }
 }

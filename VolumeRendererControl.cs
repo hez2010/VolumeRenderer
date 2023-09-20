@@ -253,16 +253,12 @@ public sealed class VolumeRendererControl : Control
 
         try
         {
-            _device = new D3DDevice(adapter, DeviceCreationFlags.Debug, new[]
+            _device = new D3DDevice(adapter, DeviceCreationFlags.BgraSupport, new[]
             {
                 FeatureLevel.Level_12_1,
                 FeatureLevel.Level_12_0,
                 FeatureLevel.Level_11_1,
-                FeatureLevel.Level_11_0,
-                FeatureLevel.Level_10_0,
-                FeatureLevel.Level_9_3,
-                FeatureLevel.Level_9_2,
-                FeatureLevel.Level_9_1,
+                FeatureLevel.Level_11_0
             });
 
             _context = _device.ImmediateContext;
@@ -292,7 +288,7 @@ public sealed class VolumeRendererControl : Control
             _cubeShader = new Shader<MvpConstantBuffer>(_device, "shaders/cube.v.hlsl", "shaders/cube.p.hlsl");
             _rayCastingShader = new Shader<MvpConstantBuffer, RayCastingConstantBuffer>(_device, "shaders/ray_casting.v.hlsl", "shaders/ray_casting.p.hlsl");
             _transferFunctionLoader = new TransferFunctionLoader(_device, "data/transferfunction/transfer_function.dat");
-            _rawLoader = new RawLoader<byte>(_device, "data/raw/skull_256x256x256_uint8.raw", 256, 256, 256);
+            _rawLoader = new RawLoader<byte>(_device, "data/raw/Bonsai.1.256x256x256.raw", 256, 256, 256);
             _rayGenerator = new RayGenerator(_device, pixelSize.Width, pixelSize.Height);
         }
         catch (Exception ex)
