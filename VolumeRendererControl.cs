@@ -25,7 +25,7 @@ public sealed class VolumeRendererControl : Control
     private Shader<MvpConstantBuffer, RayCastingConstantBuffer>? _rayCastingShader;
     private Shader<MvpConstantBuffer>? _cubeShader;
     private TransferFunctionLoader? _transferFunctionLoader;
-    private RawLoader? _rawLoader;
+    private IRawLoader? _rawLoader;
     private RayGenerator? _rayGenerator;
     private Buffer? _vertexBuffer, _indexBuffer;
 
@@ -128,16 +128,40 @@ public sealed class VolumeRendererControl : Control
         }
     }
 
-    private bool _autoSpin;
+    private bool _autoSpinYaw;
 
-    public static readonly DirectProperty<VolumeRendererControl, bool> AutoSpinProperty =
-        AvaloniaProperty.RegisterDirect<VolumeRendererControl, bool>(nameof(AutoSpin), o => o.AutoSpin, (o, v) => o.AutoSpin = v);
+    public static readonly DirectProperty<VolumeRendererControl, bool> AutoSpinYawProperty =
+        AvaloniaProperty.RegisterDirect<VolumeRendererControl, bool>(nameof(AutoSpinYaw), o => o.AutoSpinYaw, (o, v) => o.AutoSpinYaw = v);
 
-    public bool AutoSpin
+    public bool AutoSpinYaw
     {
-        get => _autoSpin;
-        private set => SetAndRaise(AutoSpinProperty, ref _autoSpin, value);
+        get => _autoSpinYaw;
+        private set => SetAndRaise(AutoSpinYawProperty, ref _autoSpinYaw, value);
     }
+
+    private bool _autoSpinPitch;
+
+    public static readonly DirectProperty<VolumeRendererControl, bool> AutoSpinPitchProperty =
+        AvaloniaProperty.RegisterDirect<VolumeRendererControl, bool>(nameof(AutoSpinPitch), o => o.AutoSpinPitch, (o, v) => o.AutoSpinPitch = v);
+
+    public bool AutoSpinPitch
+    {
+        get => _autoSpinPitch;
+        private set => SetAndRaise(AutoSpinPitchProperty, ref _autoSpinPitch, value);
+    }
+
+    private bool _autoSpinRoll;
+
+    public static readonly DirectProperty<VolumeRendererControl, bool> AutoSpinRollProperty =
+        AvaloniaProperty.RegisterDirect<VolumeRendererControl, bool>(nameof(AutoSpinRoll), o => o.AutoSpinRoll, (o, v) => o.AutoSpinRoll = v);
+
+    public bool AutoSpinRoll
+    {
+        get => _autoSpinRoll;
+        private set => SetAndRaise(AutoSpinRollProperty, ref _autoSpinRoll, value);
+    }
+
+    public event EventHandler<IRawLoader>? RawLoaded;
 
     protected override async void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
@@ -268,13 +292,14 @@ public sealed class VolumeRendererControl : Control
             _cubeShader = new Shader<MvpConstantBuffer>(_device, "shaders/cube.v.hlsl", "shaders/cube.p.hlsl");
             _rayCastingShader = new Shader<MvpConstantBuffer, RayCastingConstantBuffer>(_device, "shaders/ray_casting.v.hlsl", "shaders/ray_casting.p.hlsl");
             _transferFunctionLoader = new TransferFunctionLoader(_device, "data/transferfunction/transfer_function.dat");
-            _rawLoader = new RawLoader(_device, "data/raw/Bonsai.1.256x256x256.raw", 256, 256, 256, RawDataType.U8);
+            _rawLoader = new RawLoader<byte>(_device, "data/raw/skull_256x256x256_uint8.raw", 256, 256, 256);
             _rayGenerator = new RayGenerator(_device, pixelSize.Width, pixelSize.Height);
         }
         catch (Exception ex)
         {
             return (false, ex.ToString());
         }
+        RawLoaded?.Invoke(this, _rawLoader);
         return (true, $"{_device.FeatureLevel} {adapter.Description1.Description}");
     }
 
@@ -323,10 +348,10 @@ public sealed class VolumeRendererControl : Control
 
         using var draw = _swapchain.BeginDraw(pixelSize, out var renderTargetView);
 
-        if (_autoSpin)
+        if (_autoSpinYaw || _autoSpinPitch || _autoSpinRoll)
         {
-            var angle = _camera.Speed * 0.1f;
-            var rotation = Matrix4x4.Translation(-0.5f, 0, -0.5f) * Matrix4x4.RotationYawPitchRoll(angle, 0, 0) * Matrix4x4.Translation(0.5f, 0, 0.5f);
+            var angle = _camera.Speed * _deltaTime * 10;
+            var rotation = Matrix4x4.Translation(-0.5f, -0.5f, -0.5f) * Matrix4x4.RotationYawPitchRoll(_autoSpinYaw ? angle : 0, _autoSpinPitch ? angle : 0, _autoSpinRoll ? angle : 0) * Matrix4x4.Translation(0.5f, 0.5f, 0.5f);
             _model *= rotation;
         }
 
