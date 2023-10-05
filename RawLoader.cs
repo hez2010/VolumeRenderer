@@ -47,20 +47,20 @@ sealed class RawLoader<T> : IRawLoader where T : unmanaged
             Filter = Filter.MinMagMipLinear,
             BorderColor = new RawColor4(0, 0, 0, 0)
         });
-
+        
         unsafe
         {
             var baseAddr = (T*)dataStream.DataPointer.ToPointer();
-
+            int index = 0;
             for (var i = 0; i < x; i++)
             {
                 for (var j = 0; j < y; j++)
                 {
                     for (var k = 0; k < z; k++)
                     {
-                        var index = (i * x + j) * y + k;
                         var intensity = Unsafe.Read<T>(baseAddr + index);
                         CollectionsMarshal.GetValueRefOrAddDefault(_histogram, intensity, out _)++;
+                        index++;
                     }
                 }
             }
