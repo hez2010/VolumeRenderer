@@ -14,8 +14,10 @@ sealed class RawLoader<T> : IRawLoader where T : unmanaged
     public SamplerState SamplerState { get; }
     public ICollection<double> HistogramX { get; } = new List<double>();
     public ICollection<double> HistogramY { get; } = new List<double>();
+    public string Name { get; }
+    public TransferFunctionLoader TransferFunction { get; set; } 
 
-    public RawLoader(D3DDevice device, string path, int x, int y, int z)
+    public RawLoader(D3DDevice device, TransferFunctionLoader tfLoader, string path, int x, int y, int z)
     {
         var numberOfData = x * y * z;
         var dataSize = Unsafe.SizeOf<T>();
@@ -71,6 +73,9 @@ sealed class RawLoader<T> : IRawLoader where T : unmanaged
             HistogramX.Add(Convert.ToDouble(k));
             HistogramY.Add(v);
         }
+
+        Name = Path.GetFileName(path);
+        TransferFunction = tfLoader;
     }
 
     public void Dispose()
@@ -81,6 +86,7 @@ sealed class RawLoader<T> : IRawLoader where T : unmanaged
             GC.SuppressFinalize(this);
             RawTextureView?.Dispose();
             SamplerState?.Dispose();
+            TransferFunction?.Dispose();
         }
     }
 

@@ -24,11 +24,10 @@ public sealed class VolumeRendererControl : Control
     private Camera? _camera;
     private Shader<MvpConstantBuffer, RayCastingConstantBuffer>? _rayCastingShader;
     private Shader<MvpConstantBuffer>? _cubeShader;
-    private TransferFunctionLoader? _transferFunctionLoader;
-    private IRawLoader? _rawLoader;
     private RayGenerator? _rayGenerator;
     private Buffer? _vertexBuffer, _indexBuffer;
 
+    private IRawLoader[]? _rawLoaders;
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     private long _lastTime;
@@ -188,10 +187,13 @@ public sealed class VolumeRendererControl : Control
             _rayCastingShader = null;
             _cubeShader?.Dispose();
             _cubeShader = null;
-            _transferFunctionLoader?.Dispose();
-            _transferFunctionLoader = null;
-            _rawLoader?.Dispose();
-            _rawLoader = null;
+            if (_rawLoaders is not null)
+            {
+                foreach (var r in _rawLoaders)
+                {
+                    r.Dispose();
+                }
+            }
             _rayGenerator?.Dispose();
             _rayGenerator = null;
             _vertexBuffer?.Dispose();
@@ -287,15 +289,21 @@ public sealed class VolumeRendererControl : Control
             _camera = new Camera(new(0.5f, 0.5f, -2), 0, 0, 0, MathUtil.PiOverFour, (float)pixelSize.Width / pixelSize.Height, 0.1f, 800.0f);
             _cubeShader = new Shader<MvpConstantBuffer>(_device, "shaders/cube.v.hlsl", "shaders/cube.p.hlsl");
             _rayCastingShader = new Shader<MvpConstantBuffer, RayCastingConstantBuffer>(_device, "shaders/ray_casting.v.hlsl", "shaders/ray_casting.p.hlsl");
-            _transferFunctionLoader = new TransferFunctionLoader(_device, "data/transferfunction/transfer_function.dat");
-            _rawLoader = new RawLoader<byte>(_device, "data/raw/Bonsai.1.256x256x256.raw", 256, 256, 256);
+            _rawLoaders = new[] {
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function1.dat"), @"D:\Leaf\420\20190904_192621_Raster_P1_img.raw", 640, 200, 200),
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function2.dat"), @"D:\Leaf\500\20190904_180635_Raster_P1_img.raw", 640, 200, 200),
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function3.dat"), @"D:\Leaf\580\20190904_184825_Raster_P1_img.raw", 640, 200, 200)
+            };
             _rayGenerator = new RayGenerator(_device, pixelSize.Width, pixelSize.Height);
         }
         catch (Exception ex)
         {
             return (false, ex.ToString());
         }
-        RawLoaded?.Invoke(this, _rawLoader);
+        foreach (var r in _rawLoaders)
+        {
+            RawLoaded?.Invoke(this, r);
+        }
         return (true, $"{_device.FeatureLevel} {adapter.Description1.Description}");
     }
 
@@ -332,12 +340,11 @@ public sealed class VolumeRendererControl : Control
     {
         if (_rayCastingShader is null ||
             _cubeShader is null ||
-            _transferFunctionLoader is null ||
-            _rawLoader is null ||
             _rayGenerator is null ||
             _camera is null ||
             _context is null ||
-            _swapchain is null)
+            _swapchain is null ||
+            _rawLoaders is null)
         {
             throw new InvalidOperationException("Volume renderer is not initialized.");
         }
@@ -402,16 +409,23 @@ public sealed class VolumeRendererControl : Control
         _rayCastingShader.SetPixelConstantBuffer(_context, new(StepSize, new(pixelSize.Width, pixelSize.Height)));
 
         _context.PixelShader.SetSampler(0, _rayGenerator.SamplerState);
-        _context.PixelShader.SetSampler(1, _rawLoader.SamplerState);
-        _context.PixelShader.SetSampler(2, _transferFunctionLoader.SamplerState);
+        _context.PixelShader.SetSampler(1, _rawLoaders[0].SamplerState);
+        _context.PixelShader.SetSampler(2, _rawLoaders[0].TransferFunction.SamplerState);
+        _context.PixelShader.SetSampler(3, _rawLoaders[1].SamplerState);
+        _context.PixelShader.SetSampler(4, _rawLoaders[1].TransferFunction.SamplerState);
+        _context.PixelShader.SetSampler(5, _rawLoaders[2].SamplerState);
+        _context.PixelShader.SetSampler(6, _rawLoaders[2].TransferFunction.SamplerState);
 
         _context.PixelShader.SetShaderResource(0, _rayGenerator.FrontFaceTextureView);
         _context.PixelShader.SetShaderResource(1, _rayGenerator.BackFaceTextureView);
-        _context.PixelShader.SetShaderResource(2, _rawLoader.RawTextureView);
-        _context.PixelShader.SetShaderResource(3, _transferFunctionLoader.FunctionTextureView);
+        _context.PixelShader.SetShaderResource(2, _rawLoaders[0].RawTextureView);
+        _context.PixelShader.SetShaderResource(3, _rawLoaders[0].TransferFunction.FunctionTextureView);
+        _context.PixelShader.SetShaderResource(4, _rawLoaders[1].RawTextureView);
+        _context.PixelShader.SetShaderResource(5, _rawLoaders[1].TransferFunction.FunctionTextureView);
+        _context.PixelShader.SetShaderResource(6, _rawLoaders[2].RawTextureView);
+        _context.PixelShader.SetShaderResource(7, _rawLoaders[2].TransferFunction.FunctionTextureView);
 
         _context.DrawIndexed(36, 0, 0);
-
         CountFps();
     }
 
@@ -449,27 +463,25 @@ public sealed class VolumeRendererControl : Control
         }
     }
 
-    public void UpdateTransferFunction(string? path = null)
+    public void UpdateTransferFunction(IRawLoader rawLoader, string? path = null)
     {
         if (_device is not null)
         {
             _semaphore.Wait();
-            if (_transferFunctionLoader is not null)
+            if (rawLoader.TransferFunction is not null)
             {
-                _transferFunctionLoader.Dispose();
-                _transferFunctionLoader = path is null
-                    ? new TransferFunctionLoader(_device, _transferFunctionLoader.FileName)
+                rawLoader.TransferFunction.Dispose();
+                rawLoader.TransferFunction = path is null
+                    ? new TransferFunctionLoader(_device, rawLoader.TransferFunction.FileName)
                     : new TransferFunctionLoader(_device, path);
             }
             else if (path is not null)
             {
-                _transferFunctionLoader = new TransferFunctionLoader(_device, path);
+                rawLoader.TransferFunction = new TransferFunctionLoader(_device, path);
             }
             _semaphore.Release();
         }
     }
-
-    public string? GetTransferFunction() => _transferFunctionLoader?.FileName;
 
     public void ChangePointerWheel(float yOffset)
     {

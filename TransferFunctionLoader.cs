@@ -3,7 +3,7 @@ using System.IO;
 
 namespace VolumeRenderer;
 
-sealed class TransferFunctionLoader : IDisposable
+public sealed class TransferFunctionLoader : IDisposable
 {
     private bool _disposed;
     public ShaderResourceView FunctionTextureView { get; }

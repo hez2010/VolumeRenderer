@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using FluentAvalonia.UI.Controls;
+using System.Collections.ObjectModel;
 
 namespace VolumeRenderer;
 
@@ -10,16 +11,27 @@ public partial class MainWindow : Window
 {
     private bool _pointerInHistogram;
     private TfEditorWindow? _tfEditor;
-    private double[] _histogramX = [];
-    private double[] _histogramY = [];
+
+    record HistogramData(double[] X, double[] Y);
+
+    public ObservableCollection<IRawLoader> Models { get; } = new();
+    private IRawLoader? currentSelection;
 
     public MainWindow()
     {
         InitializeComponent();
+        DataContext = this;
         volrdn.RawLoaded += (_, rawLoader) =>
         {
-            _histogramX = rawLoader.HistogramX.ToArray();
-            _histogramY = rawLoader.HistogramY.ToArray();
+            if (!Models.Contains(rawLoader))
+            {
+                Models.Add(rawLoader);
+            }
+            if (currentSelection is null)
+            {
+                currentSelection = rawLoader;
+                comboBox.SelectedIndex = 0;
+            }
             UpdateHistogram();
         };
     }
@@ -53,7 +65,7 @@ public partial class MainWindow : Window
 
     private void UpdateHistogram()
     {
-        if (_histogramX is []) return;
+        if (currentSelection?.HistogramX is null or { Count: 0 }) return;
 
         var xs = new List<double>();
         var ys = new List<double>();
@@ -70,11 +82,11 @@ public partial class MainWindow : Window
             }
         }
 
-        for (var i = 0; i < _histogramX.Length; i++)
+        for (var i = 0; i < currentSelection.HistogramX.Count; i++)
         {
-            if (exclusions.Contains(_histogramX[i])) continue;
-            xs.Add(_histogramX[i]);
-            ys.Add(_histogramY[i]);
+            if (exclusions.Contains(currentSelection.HistogramX.ElementAt(i))) continue;
+            xs.Add(currentSelection.HistogramX.ElementAt(i));
+            ys.Add(currentSelection.HistogramY.ElementAt(i));
         }
 
         Histogram.Plot.Clear();
@@ -92,9 +104,9 @@ public partial class MainWindow : Window
             Title = "Choose transfer function"
         });
 
-        if (result is [IStorageFile file] && file.TryGetLocalPath() is string path)
+        if (currentSelection is not null && result is [IStorageFile file] && file.TryGetLocalPath() is string path)
         {
-            volrdn.UpdateTransferFunction(path);
+            volrdn.UpdateTransferFunction(currentSelection, path);
         }
     }
 
@@ -106,7 +118,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        if (volrdn.GetTransferFunction() is not string tfFile)
+        if (currentSelection is null)
         {
             await new ContentDialog
             {
@@ -119,10 +131,16 @@ public partial class MainWindow : Window
         else
         {
             _tfEditor = new TfEditorWindow();
-            await _tfEditor.SetTransferFunction(tfFile);
-            _tfEditor.DataApplied += (_, _) => volrdn.UpdateTransferFunction();
+            await _tfEditor.SetTransferFunction(currentSelection.TransferFunction.FileName);
+            _tfEditor.DataApplied += (_, _) => volrdn.UpdateTransferFunction(currentSelection);
             _tfEditor.Closing += (_, _) => _tfEditor = null;
             _tfEditor.Show();
         }
+    }
+
+    private void ComboBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        currentSelection = e.AddedItems[0] as IRawLoader;
+        UpdateHistogram();
     }
 }

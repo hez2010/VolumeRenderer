@@ -8,6 +8,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         Width="800" Height="600"
         x:Class="VolumeRenderer.MainWindow"
+        x:DataType="local:MainWindow"
         Title="{Binding #volrdn.Fps, StringFormat=Volume Renderer - {0} FPS, Mode=OneWay}"
         PointerWheelChanged="OnPointerWheelChanged"
         KeyDown="OnKeyDown">
@@ -19,6 +20,15 @@
             </Border>
         </Grid>
         <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" MaxWidth="400">
+            <StackPanel Orientation="Horizontal" Margin="8">
+                <ComboBox x:Name="comboBox" ItemsSource="{Binding Models}" SelectedIndex="0" SelectionChanged="ComboBox_SelectionChanged">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
             <ScottPlot:AvaPlot Grid.Row="2" Width="300" Height="200" Name="Histogram" PointerEntered="OnPointerEntered" PointerExited="OnPointerExited" />
             <Grid Margin="8" ColumnDefinitions="Auto, *">
                 <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Intensity exclusions: " />
