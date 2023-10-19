@@ -81,6 +81,10 @@ public partial class MainWindow : Window
                 }
             }
         }
+        for(var i = 0; i < 1000; i++)
+        {
+            exclusions.Add(i);
+        }
 
         for (var i = 0; i < currentSelection.HistogramX.Count; i++)
         {

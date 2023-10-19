@@ -27,25 +27,42 @@ SamplerState tfSampler2 : register(s4);
 SamplerState rawSampler3 : register(s5);
 SamplerState tfSampler3 : register(s6);
 
-float4 ray_casting(float ray_length, float3 delta, float3 position, Texture3D rawData, SamplerState rawSampler, Texture1D tfFunc, SamplerState tfSampler)
+//float4 ray_casting(float ray_length, float3 delta, float3 position, Texture3D rawData, SamplerState rawSampler, Texture1D tfFunc, SamplerState tfSampler)
+//{
+//    float4 color = float4(0.0f, 0.0f, 0.0f, 0.0f);
+//    float acum_length = 0.0;
+//
+//    [loop]
+//    while (acum_length <= ray_length && color.a < 1.0)
+//    {
+//        float intensity = rawData.Sample(rawSampler, position).r;
+//        float4 c = tfFunc.Sample(tfSampler, intensity);
+//
+//        color.rgb = c.a * c.rgb + (1 - c.a) * color.a * color.rgb;
+//        color.a = c.a + (1 - c.a) * color.a;
+//        acum_length += step;
+//        position += delta;
+//    }
+//
+//    color.rgb = color.a * color.rgb + (1 - color.a) * float3(1.0, 1.0, 1.0);
+//    return color;
+//}
+
+float4 mix_color(float4 c1, float4 c2)
 {
-    float4 color = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float acum_length = 0.0;
+    float4 c = float4(0, 0, 0, 0);
+    c.r = 1 - sqrt((pow(1 - c1.r, 2) + pow(1 - c2.r, 2)) / 2);
+    c.g = 1 - sqrt((pow(1 - c1.g, 2) + pow(1 - c2.g, 2)) / 2);
+    c.b = 1 - sqrt((pow(1 - c1.b, 2) + pow(1 - c2.b, 2)) / 2);
+    c.a = 1 - sqrt((pow(1 - c1.a, 2) + pow(1 - c2.a, 2)) / 2);
+    return c;
+}
 
-    [loop]
-    while (acum_length <= ray_length && color.a < 1.0)
-    {
-        float intensity = rawData.Sample(rawSampler, position).r;
-        float4 c = tfFunc.Sample(tfSampler, intensity);
-
-        color.rgb = c.a * c.rgb + (1 - c.a) * color.a * color.rgb;
-        color.a = c.a + (1 - c.a) * color.a;
-        acum_length += step;
-        position += delta;
-    }
-
-    color.rgb = color.a * color.rgb + (1 - color.a) * float3(1.0, 1.0, 1.0);
-    return color;
+float mix_value(float c1, float c2)
+{
+    float c = 0;
+    c = 1 - sqrt((pow(1 - c1, 2) + pow(1 - c2, 2)) / 2);
+    return c;
 }
 
 float4 main(PS_IN input) : SV_TARGET
@@ -58,8 +75,32 @@ float4 main(PS_IN input) : SV_TARGET
     float ray_length = length(ray);
     float3 delta = step * (ray / ray_length);
     float3 position = entryPoint.xyz;
-    
-    float4 color1 = ray_casting(ray_length, delta, position, RawData1, rawSampler1, TfFunc1, tfSampler1);
+
+    float4 color = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    float acum_length = 0.0;
+
+    [loop]
+    while (acum_length <= ray_length && color.a < 1.0)
+    {
+        // TfFunc3.Sample(tfSampler3, RawData3.Sample(rawSampler3, position).r)
+        // float4 c1 = (0, 0, , /* / 1506*/);
+        // float4 c2 = (0, , 0, /* / 1375 */);
+        // float4 c3 = (, 0, 0, /* / 993 */);
+        float4 c = float4(RawData3.Sample(rawSampler3, position).r,
+            RawData2.Sample(rawSampler2, position).r,
+            RawData1.Sample(rawSampler1, position).r,
+            mix_value(mix_value(RawData1.Sample(rawSampler1, position).r,
+                RawData2.Sample(rawSampler2, position).r),
+                RawData3.Sample(rawSampler3, position).r));
+        color.rgb = c.a * c.rgb + (1 - c.a) * color.a * color.rgb;
+        color.a = c.a + (1 - c.a) * color.a;
+        acum_length += step;
+        position += delta;
+    }
+
+    color.rgb = color.a * color.rgb + (1 - color.a) * float3(1.0, 1.0, 1.0);
+
+    /*float4 color1 = ray_casting(ray_length, delta, position, RawData1, rawSampler1, TfFunc1, tfSampler1);
     float4 color2 = ray_casting(ray_length, delta, position, RawData2, rawSampler2, TfFunc2, tfSampler3);
     float4 color3 = ray_casting(ray_length, delta, position, RawData3, rawSampler3, TfFunc3, tfSampler3);
     
@@ -68,7 +109,7 @@ float4 main(PS_IN input) : SV_TARGET
         ? color1
         : color2.a >= color1.a && color2.a >= color3.a
         ? color2
-        : color3;
+        : color3;*/
 
     color.a = 1.0;
     

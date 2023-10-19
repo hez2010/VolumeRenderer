@@ -116,7 +116,7 @@ public sealed class VolumeRendererControl : Control
     public static readonly DirectProperty<VolumeRendererControl, float> StepSizeProperty =
         AvaloniaProperty.RegisterDirect<VolumeRendererControl, float>(nameof(StepSize), o => o.StepSize, (o, v) => o.StepSize = v);
 
-    private float _stepsize = 0.01f;
+    private float _stepsize = 0.001f;
     public float StepSize
     {
         get => _stepsize;
