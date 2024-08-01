@@ -6,6 +6,7 @@ using Avalonia.VisualTree;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using Avalonia.LogicalTree;
 using System.Threading;
+using Avalonia.Threading;
 
 namespace VolumeRenderer;
 
@@ -162,10 +163,10 @@ public sealed class VolumeRendererControl : Control
 
     public event EventHandler<IRawLoader>? RawLoaded;
 
-    protected override async void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        await InitializeAsync();
+        Dispatcher.UIThread.Post(async () => await InitializeAsync(e));
     }
 
     protected override async void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
@@ -212,7 +213,7 @@ public sealed class VolumeRendererControl : Control
         base.OnDetachedFromLogicalTree(e);
     }
 
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(VisualTreeAttachmentEventArgs e)
     {
         try
         {
@@ -224,24 +225,21 @@ public sealed class VolumeRendererControl : Control
             _visual.Size = new(Bounds.Width, Bounds.Height);
             _visual.Surface = _surface;
             ElementComposition.SetElementChildVisual(this, _visual);
-            var (result, info) = await InitializeCoreAsync(_compositor, _surface);
+            var (result, info) = await InitializeCoreAsync(_compositor, _surface, e);
             Info = info;
             _initialized = result;
             QueueNextFrame();
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            Info = e.ToString();
+            Info = ex.ToString();
         }
     }
 
     private async Task<(bool success, string info)> InitializeCoreAsync(Compositor compositor,
-        CompositionDrawingSurface surface)
+        CompositionDrawingSurface surface,
+        VisualTreeAttachmentEventArgs e)
     {
-        var root = this.GetVisualRoot();
-        if (root == null)
-            return (false, "Not visual root is present.");
-
         var interop = await compositor.TryGetCompositionGpuInterop();
         if (interop == null)
             return (false, "Compositor doesn't support interop for the current backend.");
@@ -255,13 +253,13 @@ public sealed class VolumeRendererControl : Control
 
         try
         {
-            _device = new D3DDevice(adapter, DeviceCreationFlags.BgraSupport, new[]
-            {
+            _device = new D3DDevice(adapter, DeviceCreationFlags.BgraSupport,
+            [
                 FeatureLevel.Level_12_1,
                 FeatureLevel.Level_12_0,
                 FeatureLevel.Level_11_1,
                 FeatureLevel.Level_11_0
-            });
+            ]);
 
             _context = _device.ImmediateContext;
             _swapchain = new D3D11Swapchain(_device, interop, surface);
@@ -285,15 +283,18 @@ public sealed class VolumeRendererControl : Control
                 1, 0, 4, 4, 5, 1
             });
 
-            var pixelSize = PixelSize.FromSize(Bounds.Size, root.RenderScaling);
+            var pixelSize = PixelSize.FromSize(Bounds.Size, e.Root.RenderScaling);
             _camera = new Camera(new(0.5f, 0.5f, -2), 0, 0, 0, MathUtil.PiOverFour, (float)pixelSize.Width / pixelSize.Height, 0.1f, 800.0f);
             _cubeShader = new Shader<MvpConstantBuffer>(_device, "shaders/cube.v.hlsl", "shaders/cube.p.hlsl");
             _rayCastingShader = new Shader<MvpConstantBuffer, RayCastingConstantBuffer>(_device, "shaders/ray_casting.v.hlsl", "shaders/ray_casting.p.hlsl");
-            _rawLoaders = new[] {
-                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function1.dat"), @"D:\Leaf\420\20190904_192621_Raster_P1_img.raw", 640, 200, 200),
-                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function2.dat"), @"D:\Leaf\500\20190904_180635_Raster_P1_img.raw", 640, 200, 200),
-                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function3.dat"), @"D:\Leaf\580\20190904_184825_Raster_P1_img.raw", 640, 200, 200)
-            };
+            _rawLoaders = [
+                // B-channel
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function1.dat"), "data/raw/bonsai_256x256x256_uint8.raw", 256, 256, 256, 0),
+                // G-channel
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function2.dat"), "data/raw/bonsai_256x256x256_uint8.raw", 256, 256, 256, 1),
+                // R-channel
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function3.dat"), "data/raw/bonsai_256x256x256_uint8.raw", 256, 256, 256, 2),
+            ];
             _rayGenerator = new RayGenerator(_device, pixelSize.Width, pixelSize.Height);
         }
         catch (Exception ex)

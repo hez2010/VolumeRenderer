@@ -3,6 +3,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using FluentAvalonia.UI.Controls;
+using ScottPlot;
 using System.Collections.ObjectModel;
 
 namespace VolumeRenderer;
@@ -81,10 +82,6 @@ public partial class MainWindow : Window
                 }
             }
         }
-        for(var i = 0; i < 1000; i++)
-        {
-            exclusions.Add(i);
-        }
 
         for (var i = 0; i < currentSelection.HistogramX.Count; i++)
         {
@@ -94,7 +91,8 @@ public partial class MainWindow : Window
         }
 
         Histogram.Plot.Clear();
-        Histogram.Plot.AddScatter(xs.ToArray(), ys.ToArray());
+        Histogram.Plot.Add.Scatter(xs.ToArray(), ys.ToArray());
+        Histogram.Plot.Axes.AutoScale();
         Histogram.Refresh();
     }
 

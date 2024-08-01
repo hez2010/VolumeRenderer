@@ -24,10 +24,9 @@ sealed class Shader<TVertexConstantBuffer> : IDisposable
         _inputLayout = new InputLayout(
             device,
             ShaderSignature.GetInputSignature(vertexShaderByteCode),
-            new[]
-            {
+            [
                 new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0)
-            });
+            ]);
 
         _vertexConstantBuffer = new Buffer(device, Utilities.SizeOf<TVertexConstantBuffer>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
     }
@@ -88,10 +87,9 @@ public sealed class Shader<TVertexConstantBuffer, TPixelConstantBuffer> : IDispo
         _inputLayout = new InputLayout(
             device,
             ShaderSignature.GetInputSignature(vertexShaderByteCode),
-            new[]
-            {
+            [
                 new InputElement("POSITION", 0, Format.R32G32B32_Float, 0, 0)
-            });
+            ]);
 
         _vertexConstantBuffer = new Buffer(device, Utilities.SizeOf<TVertexConstantBuffer>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
         _pixelConstantBuffer = new Buffer(device, Utilities.SizeOf<TPixelConstantBuffer>(), ResourceUsage.Dynamic, BindFlags.ConstantBuffer, CpuAccessFlags.Write, ResourceOptionFlags.None, 0);
