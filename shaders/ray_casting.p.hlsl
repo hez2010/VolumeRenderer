@@ -69,13 +69,15 @@ float4 main(PS_IN input) : SV_TARGET
     float4 color = float4(0.0f, 0.0f, 0.0f, 0.0f);
     float acum_length = 0.0;
 
+    const float intensityThreshold = 0.2f;
+
     [loop]
     while (acum_length <= ray_length && color.a < 1.0)
     {
         float r = RawData3.Sample(rawSampler3, position).r;
         float g = RawData2.Sample(rawSampler2, position).r;
         float b = RawData1.Sample(rawSampler1, position).r;
-        float4 c = float4(r, g, b, r < 0.3 || b < 0.3 || g < 0.3 ? 0 : rgb2yuv(float3(r, g, b)).r);
+        float4 c = float4(r, g, b, r < intensityThreshold || b < intensityThreshold || g < intensityThreshold ? 0 : rgb2yuv(float3(r, g, b)).r);
         color.rgb = c.a * c.rgb + (1 - c.a) * color.a * color.rgb;
         color.a = c.a + (1 - c.a) * color.a;
         acum_length += step;

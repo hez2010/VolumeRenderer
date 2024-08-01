@@ -289,11 +289,11 @@ public sealed class VolumeRendererControl : Control
             _rayCastingShader = new Shader<MvpConstantBuffer, RayCastingConstantBuffer>(_device, "shaders/ray_casting.v.hlsl", "shaders/ray_casting.p.hlsl");
             _rawLoaders = [
                 // B-channel
-                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function1.dat"), "data/raw/bonsai_256x256x256_uint8.raw", 256, 256, 256, 0),
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function1.dat"), "data/raw/Bonsai.1.256x256x256.raw", 256, 256, 256, 0),
                 // G-channel
-                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function2.dat"), "data/raw/bonsai_256x256x256_uint8.raw", 256, 256, 256, 1),
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function2.dat"), "data/raw/Bonsai.1.256x256x256.raw", 256, 256, 256, 1),
                 // R-channel
-                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function3.dat"), "data/raw/bonsai_256x256x256_uint8.raw", 256, 256, 256, 2),
+                new RawLoader<ushort>(_device, new(_device, "data/transferfunction/transfer_function3.dat"), "data/raw/Bonsai.1.256x256x256.raw", 256, 256, 256, 2),
             ];
             _rayGenerator = new RayGenerator(_device, pixelSize.Width, pixelSize.Height);
         }
